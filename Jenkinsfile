@@ -1,26 +1,25 @@
-
 pipeline {
     agent any
 
-    enviroment {
-        DOCKER='C:\\Users\\Patri\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin\\docker.exe'
+    environment {
+        DOCKER = 'C:\\Users\\Patri\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin\\docker.exe'
     }
 
     stages {
         stage('Construir imagen Docker') {
             steps {
-                bat "\"${DOCKER}\" build -t etl-pytest:${BUILD_NUMBER} .'
+                bat '"%DOCKER%" build -t etl-pytest:%BUILD_NUMBER% .'
             }
         }
 
         stage('Ejecutar pruebas pytest') {
             steps {
-                bat 'mkdir -p reports'
-
                 bat '''
-                    "${DOCKER}" run --rm \
-                        -v "$WORKSPACE/reports:/app/reports" \
-                        etl-pytest:${BUILD_NUMBER}
+                    if not exist reports mkdir reports
+
+                    "%DOCKER%" run --rm ^
+                        -v "%WORKSPACE%\\reports:/app/reports" ^
+                        etl-pytest:%BUILD_NUMBER%
                 '''
             }
         }
