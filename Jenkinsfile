@@ -1,25 +1,36 @@
 pipeline {
     agent any
 
-    environment {
-        DOCKER = 'C:\\Users\\Patri\\AppData\\Local\\Programs\\DockerDesktop\\resources\\bin\\docker.exe'
-    }
-
     stages {
+        stage('Verificar Docker') {
+            steps {
+                sh '''
+                    set -e
+                    echo "Verificando Docker..."
+                    docker --version
+                    docker info
+                '''
+            }
+        }
+
         stage('Construir imagen Docker') {
             steps {
-                bat '"%DOCKER%" build -t etl-pytest:%BUILD_NUMBER% .'
+                sh '''
+                    set -e
+                    docker build -t etl-pytest:${BUILD_NUMBER} .
+                '''
             }
         }
 
         stage('Ejecutar pruebas pytest') {
             steps {
-                bat '''
-                    if not exist reports mkdir reports
+                sh '''
+                    set -e
+                    mkdir -p reports
 
-                    "%DOCKER%" run --rm ^
-                        -v "%WORKSPACE%\\reports:/app/reports" ^
-                        etl-pytest:%BUILD_NUMBER%
+                    docker run --rm \
+                        -v "${WORKSPACE}/reports:/app/reports" \
+                        etl-pytest:${BUILD_NUMBER}
                 '''
             }
         }
